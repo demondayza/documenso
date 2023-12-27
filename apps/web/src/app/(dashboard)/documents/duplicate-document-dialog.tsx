@@ -1,5 +1,6 @@
 import { useRouter } from 'next/navigation';
 
+import { formatDocumentsPath } from '@documenso/lib/utils/teams';
 import { trpc as trpcReact } from '@documenso/trpc/react';
 import { Button } from '@documenso/ui/primitives/button';
 import {
@@ -16,12 +17,14 @@ type DuplicateDocumentDialogProps = {
   id: number;
   open: boolean;
   onOpenChange: (_open: boolean) => void;
+  teamUrl?: string;
 };
 
 export const DuplicateDocumentDialog = ({
   id,
   open,
   onOpenChange,
+  teamUrl,
 }: DuplicateDocumentDialogProps) => {
   const router = useRouter();
   const { toast } = useToast();
@@ -37,10 +40,12 @@ export const DuplicateDocumentDialog = ({
       }
     : undefined;
 
+  const documentsPath = formatDocumentsPath(teamUrl);
+
   const { mutateAsync: duplicateDocument, isLoading: isDuplicateLoading } =
     trpcReact.document.duplicateDocument.useMutation({
       onSuccess: (newId) => {
-        router.push(`/documents/${newId}`);
+        router.push(`${documentsPath}/${newId}`);
 
         toast({
           title: 'Document Duplicated',
