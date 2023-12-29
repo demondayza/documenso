@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
 import type { GetTeamsResponse } from '@documenso/lib/server-only/team/get-teams';
+import { getRootHref } from '@documenso/lib/utils/params';
 import type { User } from '@documenso/prisma/client';
 import { cn } from '@documenso/ui/lib/utils';
 
@@ -34,14 +35,6 @@ export const Header = ({ className, user, teams, ...props }: HeaderProps) => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const getRootHref = () => {
-    if (typeof params?.teamUrl === 'string') {
-      return `/t/${params.teamUrl}`;
-    }
-
-    return '/';
-  };
-
   return (
     <header
       className={cn(
@@ -53,7 +46,7 @@ export const Header = ({ className, user, teams, ...props }: HeaderProps) => {
     >
       <div className="mx-auto flex w-full max-w-screen-xl items-center justify-between gap-x-4 px-4 md:justify-normal md:px-8">
         <Link
-          href={getRootHref()}
+          href={getRootHref(params)}
           className="focus-visible:ring-ring ring-offset-background rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         >
           <Logo className="h-6 w-auto" />

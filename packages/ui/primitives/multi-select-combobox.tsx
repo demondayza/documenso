@@ -102,11 +102,11 @@ export function MultiSelectCombobox<T = OptionValue>({
             role="combobox"
             disabled={loading}
             aria-expanded={open}
-            className="relative w-[200px] px-3"
+            className="w-[200px] px-3"
           >
             <AnimatePresence>
               {loading ? (
-                <div className="absolute inset-0 flex items-center justify-center">
+                <div className="flex items-center justify-center">
                   <Loader className="h-5 w-5 animate-spin text-gray-500 dark:text-gray-100" />
                 </div>
               ) : (
@@ -141,7 +141,7 @@ export function MultiSelectCombobox<T = OptionValue>({
         {showClearButton && (
           <div className="absolute bottom-0 right-8 top-0 flex items-center justify-center">
             <button
-              className="flex h-4 w-4 items-center justify-center rounded-full bg-gray-300"
+              className="flex h-4 w-4 items-center justify-center rounded-full bg-gray-300 dark:bg-neutral-700"
               onClick={() => onChange([])}
             >
               <XIcon className="text-muted-foreground h-3.5 w-3.5" />
