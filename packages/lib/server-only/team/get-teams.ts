@@ -56,12 +56,27 @@ export const getTeamById = async ({ userId, teamId }: GetTeamByIdOptions) => {
     };
   }
 
-  return await prisma.team.findUniqueOrThrow({
+  const result = await prisma.team.findUniqueOrThrow({
     where: whereFilter,
     include: {
       teamEmail: true,
+      members: {
+        where: {
+          userId,
+        },
+        select: {
+          role: true,
+        },
+      },
     },
   });
+
+  const { members, ...team } = result;
+
+  return {
+    ...team,
+    currentTeamMember: members[0],
+  };
 };
 
 export type GetTeamByUrlOptions = {
@@ -70,7 +85,7 @@ export type GetTeamByUrlOptions = {
 };
 
 /**
- * Get a team given a teamId.
+ * Get a team given a team URL.
  *
  * Provide an optional userId to check that the user is a member of the team.
  */

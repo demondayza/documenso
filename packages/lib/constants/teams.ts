@@ -17,18 +17,13 @@ export const TEAM_MEMBER_ROLE_PERMISSIONS_MAP = {
 } satisfies Record<string, TeamMemberRole[]>;
 
 /**
- * Determines whether a team member can execute a given action.
- *
- * @param action The action the user is trying to execute.
- * @param role The current role of the user.
- * @returns Whether the user can execute the action.
+ * A hierarchy of team member roles to determine which role has higher permission than another.
  */
-export const canExecuteTeamAction = (
-  action: keyof typeof TEAM_MEMBER_ROLE_PERMISSIONS_MAP,
-  role: keyof typeof TEAM_MEMBER_ROLE_MAP,
-) => {
-  return TEAM_MEMBER_ROLE_PERMISSIONS_MAP[action].some((i) => i === role);
-};
+export const TEAM_MEMBER_ROLE_HIERARCHY = {
+  [TeamMemberRole.ADMIN]: [TeamMemberRole.ADMIN, TeamMemberRole.MANAGER, TeamMemberRole.MEMBER],
+  [TeamMemberRole.MANAGER]: [TeamMemberRole.MANAGER, TeamMemberRole.MEMBER],
+  [TeamMemberRole.MEMBER]: [TeamMemberRole.MEMBER],
+} satisfies Record<TeamMemberRole, TeamMemberRole[]>;
 
 export const PROTECTED_TEAM_URLS = [
   '403',
@@ -102,3 +97,32 @@ export const PROTECTED_TEAM_URLS = [
   'virus',
   'webhook',
 ];
+
+/**
+ * Determines whether a team member can execute a given action.
+ *
+ * @param action The action the user is trying to execute.
+ * @param role The current role of the user.
+ * @returns Whether the user can execute the action.
+ */
+export const canExecuteTeamAction = (
+  action: keyof typeof TEAM_MEMBER_ROLE_PERMISSIONS_MAP,
+  role: keyof typeof TEAM_MEMBER_ROLE_MAP,
+) => {
+  return TEAM_MEMBER_ROLE_PERMISSIONS_MAP[action].some((i) => i === role);
+};
+
+/**
+ * Compares the provided `currentUserRole` with the provided `roleToCheck` to determine
+ * whether the `currentUserRole` has permission to modify the `roleToCheck`.
+ *
+ * @param currentUserRole Role of the current user
+ * @param roleToCheck Role of another user to see if the current user can modify
+ * @returns True if the current user can modify the other user, false otherwise
+ */
+export const isTeamRoleWithinUserHierarchy = (
+  currentUserRole: keyof typeof TEAM_MEMBER_ROLE_MAP,
+  roleToCheck: keyof typeof TEAM_MEMBER_ROLE_MAP,
+) => {
+  return TEAM_MEMBER_ROLE_HIERARCHY[currentUserRole].some((i) => i === roleToCheck);
+};

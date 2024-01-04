@@ -78,6 +78,7 @@ export const ZSendDocumentMutationSchema = z.object({
 export const ZResendDocumentMutationSchema = z.object({
   documentId: z.number(),
   recipients: z.array(z.number()).min(1),
+  teamUrl: z.string().optional(),
 });
 
 export type TSendDocumentMutationSchema = z.infer<typeof ZSendDocumentMutationSchema>;

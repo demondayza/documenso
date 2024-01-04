@@ -38,6 +38,7 @@ export default async function DocumentPageComponent({ params, team }: DocumentPa
   const document = await getDocumentById({
     id: documentId,
     userId: user.id,
+    teamUrl: team?.url,
   }).catch(() => null);
 
   if (!document || !document.documentData) {

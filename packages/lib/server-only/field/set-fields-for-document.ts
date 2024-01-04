@@ -25,12 +25,9 @@ export const setFieldsForDocument = async ({
   const document = await prisma.document.findFirst({
     where: {
       id: documentId,
-      userId,
       OR: [
         {
-          team: {
-            is: null,
-          },
+          userId,
         },
         {
           team: {

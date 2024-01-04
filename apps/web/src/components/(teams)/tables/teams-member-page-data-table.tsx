@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import { useDebouncedValue } from '@documenso/lib/client-only/hooks/use-debounced-value';
+import type { TeamMemberRole } from '@documenso/prisma/client';
 import { Input } from '@documenso/ui/primitives/input';
 import { Tabs, TabsList, TabsTrigger } from '@documenso/ui/primitives/tabs';
 
@@ -13,12 +14,14 @@ import TeamMemberInvitesDataTable from '~/components/(teams)/tables/team-member-
 import TeamMembersDataTable from '~/components/(teams)/tables/team-members-data-table';
 
 export type TeamsMemberPageDataTableProps = {
+  currentUserTeamRole: TeamMemberRole;
   teamId: number;
   teamName: string;
   teamOwnerUserId: number;
 };
 
 export default function TeamsMemberPageDataTable({
+  currentUserTeamRole,
   teamId,
   teamName,
   teamOwnerUserId,
@@ -79,6 +82,7 @@ export default function TeamsMemberPageDataTable({
       ) : (
         <TeamMembersDataTable
           key="members"
+          currentUserTeamRole={currentUserTeamRole}
           teamId={teamId}
           teamName={teamName}
           teamOwnerUserId={teamOwnerUserId}

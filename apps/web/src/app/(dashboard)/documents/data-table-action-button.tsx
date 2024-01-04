@@ -8,7 +8,7 @@ import { match } from 'ts-pattern';
 
 import { getFile } from '@documenso/lib/universal/upload/get-file';
 import { formatDocumentsPath } from '@documenso/lib/utils/teams';
-import type { Document, Recipient, User } from '@documenso/prisma/client';
+import type { Document, Recipient, Team, User } from '@documenso/prisma/client';
 import { DocumentStatus, SigningStatus } from '@documenso/prisma/client';
 import type { DocumentWithData } from '@documenso/prisma/types/document-with-data';
 import { trpc as trpcClient } from '@documenso/trpc/client';
@@ -19,6 +19,7 @@ export type DataTableActionButtonProps = {
   row: Document & {
     User: Pick<User, 'id' | 'name' | 'email'>;
     Recipient: Recipient[];
+    team: Pick<Team, 'id' | 'url'> | null;
   };
   teamUrl?: string;
 };
@@ -39,6 +40,7 @@ export const DataTableActionButton = ({ row, teamUrl }: DataTableActionButtonPro
   const isPending = row.status === DocumentStatus.PENDING;
   const isComplete = row.status === DocumentStatus.COMPLETED;
   const isSigned = recipient?.signingStatus === SigningStatus.SIGNED;
+  const isTeamDocument = teamUrl && row.team?.url === teamUrl;
 
   const documentsPath = formatDocumentsPath(teamUrl);
 
@@ -49,6 +51,7 @@ export const DataTableActionButton = ({ row, teamUrl }: DataTableActionButtonPro
       if (!recipient) {
         document = await trpcClient.document.getDocumentById.query({
           id: row.id,
+          teamUrl,
         });
       } else {
         document = await trpcClient.document.getDocumentByToken.query({
@@ -93,15 +96,21 @@ export const DataTableActionButton = ({ row, teamUrl }: DataTableActionButtonPro
     isPending,
     isComplete,
     isSigned,
+    isTeamDocument,
   })
-    .with({ isOwner: true, isDraft: true }, () => (
-      <Button className="w-32" asChild>
-        <Link href={`${documentsPath}/${row.id}`}>
-          <Edit className="-ml-1 mr-2 h-4 w-4" />
-          Edit
-        </Link>
-      </Button>
-    ))
+    .with(
+      teamUrl && !isOwner
+        ? { isDraft: true, isTeamDocument: true }
+        : { isOwner: true, isDraft: true },
+      () => (
+        <Button className="w-32" asChild>
+          <Link href={`${documentsPath}/${row.id}`}>
+            <Edit className="-ml-1 mr-2 h-4 w-4" />
+            Edit
+          </Link>
+        </Button>
+      ),
+    )
     .with({ isRecipient: true, isPending: true, isSigned: false }, () => (
       <Button className="w-32" asChild>
         <Link href={`/sign/${recipient?.token}`}>

@@ -1,7 +1,11 @@
 import { prisma } from '@documenso/prisma';
 import type { TeamMemberRole } from '@documenso/prisma/client';
 
-import { TEAM_MEMBER_ROLE_PERMISSIONS_MAP } from '../../constants/teams';
+import {
+  TEAM_MEMBER_ROLE_PERMISSIONS_MAP,
+  isTeamRoleWithinUserHierarchy,
+} from '../../constants/teams';
+import { AppError, AppErrorCode } from '../../errors/app-error';
 
 export type UpdateTeamMemberOptions = {
   userId: number;
@@ -32,7 +36,45 @@ export const updateTeamMember = async ({
           },
         },
       },
+      include: {
+        members: {
+          select: {
+            id: true,
+            userId: true,
+            role: true,
+          },
+        },
+      },
     });
+
+    const currentTeamMember = team.members.find((member) => member.userId === userId);
+    const teamMemberToUpdate = team.members.find((member) => member.id === teamMemberId);
+
+    if (!teamMemberToUpdate || !currentTeamMember) {
+      throw new AppError(AppErrorCode.NOT_FOUND, 'Team member does not exist');
+    }
+
+    if (teamMemberToUpdate.userId === team.ownerUserId) {
+      throw new AppError(AppErrorCode.UNAUTHORIZED, 'Cannot update the owner');
+    }
+
+    const isMemberToUpdateHigherRole = !isTeamRoleWithinUserHierarchy(
+      currentTeamMember.role,
+      teamMemberToUpdate.role,
+    );
+
+    if (isMemberToUpdateHigherRole) {
+      throw new AppError(AppErrorCode.UNAUTHORIZED, 'Cannot update a member with a higher role');
+    }
+
+    const isNewMemberRoleHigherThanCurrentRole = !isTeamRoleWithinUserHierarchy(
+      currentTeamMember.role,
+      data.role,
+    );
+
+    if (isNewMemberRoleHigherThanCurrentRole) {
+      throw new AppError(AppErrorCode.UNAUTHORIZED, 'Cannot update a member to a higher role');
+    }
 
     return await tx.teamMember.update({
       where: {

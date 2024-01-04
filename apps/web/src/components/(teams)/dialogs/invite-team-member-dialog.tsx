@@ -8,7 +8,7 @@ import { Mail, PlusCircle, Trash } from 'lucide-react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { TEAM_MEMBER_ROLE_MAP } from '@documenso/lib/constants/teams';
+import { TEAM_MEMBER_ROLE_HIERARCHY, TEAM_MEMBER_ROLE_MAP } from '@documenso/lib/constants/teams';
 import { TeamMemberRole } from '@documenso/prisma/client';
 import { trpc } from '@documenso/trpc/react';
 import { ZCreateTeamMemberInvitesMutationSchema } from '@documenso/trpc/server/team-router/schema';
@@ -58,11 +58,13 @@ export const ZInviteTeamMembersFormSchema = z
 export type TInviteTeamMembersFormSchema = z.infer<typeof ZInviteTeamMembersFormSchema>;
 
 export type InviteTeamMembersDialogProps = {
+  currentUserTeamRole: TeamMemberRole;
   teamId: number;
   trigger?: React.ReactNode;
 } & Omit<DialogPrimitive.DialogProps, 'children'>;
 
 export default function InviteTeamMembersDialog({
+  currentUserTeamRole,
   teamId,
   trigger,
   ...props
@@ -183,7 +185,7 @@ export default function InviteTeamMembersDialog({
                               </SelectTrigger>
 
                               <SelectContent position="popper">
-                                {Object.values(TeamMemberRole).map((role) => (
+                                {TEAM_MEMBER_ROLE_HIERARCHY[currentUserTeamRole].map((role) => (
                                   <SelectItem key={role} value={role}>
                                     {TEAM_MEMBER_ROLE_MAP[role] ?? role}
                                   </SelectItem>

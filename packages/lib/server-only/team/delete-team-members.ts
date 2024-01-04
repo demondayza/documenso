@@ -2,7 +2,11 @@ import { updateSubscriptionItemQuantity } from '@documenso/ee/server-only/stripe
 import { prisma } from '@documenso/prisma';
 
 import { IS_BILLING_ENABLED } from '../../constants/app';
-import { TEAM_MEMBER_ROLE_PERMISSIONS_MAP } from '../../constants/teams';
+import {
+  TEAM_MEMBER_ROLE_PERMISSIONS_MAP,
+  isTeamRoleWithinUserHierarchy,
+} from '../../constants/teams';
+import { AppError, AppErrorCode } from '../../errors/app-error';
 import { getTeamSeatPriceId } from '../../utils/billing';
 
 export type DeleteTeamMembersOptions = {
@@ -41,7 +45,34 @@ export const deleteTeamMembers = async ({
           },
         },
       },
+      include: {
+        members: {
+          select: {
+            id: true,
+            userId: true,
+            role: true,
+          },
+        },
+      },
     });
+
+    const currentTeamMember = team.members.find((member) => member.userId === userId);
+    if (!currentTeamMember) {
+      throw new AppError(AppErrorCode.NOT_FOUND, 'Team member does not exist');
+    }
+
+    const teamMembersToRemove = team.members.filter((member) => teamMemberIds.includes(member.id));
+    if (teamMembersToRemove.find((member) => member.userId === team.ownerUserId)) {
+      throw new AppError(AppErrorCode.UNAUTHORIZED, 'Cannot remove the team owner');
+    }
+
+    const isMemberToRemoveHigherRole = teamMembersToRemove.some(
+      (member) => !isTeamRoleWithinUserHierarchy(currentTeamMember.role, member.role),
+    );
+
+    if (isMemberToRemoveHigherRole) {
+      throw new AppError(AppErrorCode.UNAUTHORIZED, 'Cannot remove a member with a higher role');
+    }
 
     // Remove the team members.
     await tx.teamMember.deleteMany({

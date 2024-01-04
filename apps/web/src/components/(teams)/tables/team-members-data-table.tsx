@@ -5,9 +5,10 @@ import { useSearchParams } from 'next/navigation';
 import { Edit, MoreHorizontal, Trash2 } from 'lucide-react';
 
 import { useUpdateSearchParams } from '@documenso/lib/client-only/hooks/use-update-search-params';
-import { TEAM_MEMBER_ROLE_MAP } from '@documenso/lib/constants/teams';
+import { TEAM_MEMBER_ROLE_HIERARCHY, TEAM_MEMBER_ROLE_MAP } from '@documenso/lib/constants/teams';
 import { ZBaseTableSearchParamsSchema } from '@documenso/lib/types/search-params';
 import { extractInitials } from '@documenso/lib/utils/recipient-formatter';
+import type { TeamMemberRole } from '@documenso/prisma/client';
 import { trpc } from '@documenso/trpc/react';
 import { AvatarWithText } from '@documenso/ui/primitives/avatar';
 import { DataTable } from '@documenso/ui/primitives/data-table';
@@ -28,12 +29,14 @@ import DeleteTeamMemberDialog from '../dialogs/delete-team-member-dialog';
 import UpdateTeamMemberDialog from '../dialogs/update-team-member-dialog';
 
 export type TeamMembersDataTableProps = {
+  currentUserTeamRole: TeamMemberRole;
   teamOwnerUserId: number;
   teamId: number;
   teamName: string;
 };
 
 export default function TeamMembersDataTable({
+  currentUserTeamRole,
   teamOwnerUserId,
   teamId,
   teamName,
@@ -124,13 +127,15 @@ export default function TeamMembersDataTable({
                   teamMemberRole={row.original.role}
                   trigger={
                     <DropdownMenuItem
-                      disabled={teamOwnerUserId === row.original.userId}
-                      onSelect={(e) => e.preventDefault()}
-                      title={
-                        teamOwnerUserId === row.original.userId
-                          ? 'You cannot update the team owner role'
-                          : 'Update team member role'
+                      disabled={
+                        teamOwnerUserId === row.original.userId ||
+                        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                        !(TEAM_MEMBER_ROLE_HIERARCHY[currentUserTeamRole] as string[]).includes(
+                          row.original.role,
+                        )
                       }
+                      onSelect={(e) => e.preventDefault()}
+                      title="Update team member role"
                     >
                       <Edit className="mr-2 h-4 w-4" />
                       Update role
@@ -147,12 +152,14 @@ export default function TeamMembersDataTable({
                   trigger={
                     <DropdownMenuItem
                       onSelect={(e) => e.preventDefault()}
-                      disabled={teamOwnerUserId === row.original.userId}
-                      title={
-                        teamOwnerUserId === row.original.userId
-                          ? 'You cannot remove the team owner'
-                          : 'Remove team member'
+                      disabled={
+                        teamOwnerUserId === row.original.userId ||
+                        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                        !(TEAM_MEMBER_ROLE_HIERARCHY[currentUserTeamRole] as string[]).includes(
+                          row.original.role,
+                        )
                       }
+                      title="Remove team member"
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
                       Remove

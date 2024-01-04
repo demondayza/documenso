@@ -19,7 +19,7 @@ import { useSession } from 'next-auth/react';
 
 import { getFile } from '@documenso/lib/universal/upload/get-file';
 import { formatDocumentsPath } from '@documenso/lib/utils/teams';
-import type { Document, Recipient, User } from '@documenso/prisma/client';
+import type { Document, Recipient, Team, User } from '@documenso/prisma/client';
 import { DocumentStatus } from '@documenso/prisma/client';
 import type { DocumentWithData } from '@documenso/prisma/types/document-with-data';
 import { trpc as trpcClient } from '@documenso/trpc/client';
@@ -40,6 +40,7 @@ export type DataTableActionDropdownProps = {
   row: Document & {
     User: Pick<User, 'id' | 'name' | 'email'>;
     Recipient: Recipient[];
+    team: Pick<Team, 'id' | 'url'> | null;
   };
   teamUrl?: string;
 };
@@ -63,6 +64,7 @@ export const DataTableActionDropdown = ({ row, teamUrl }: DataTableActionDropdow
   const isComplete = row.status === DocumentStatus.COMPLETED;
   // const isSigned = recipient?.signingStatus === SigningStatus.SIGNED;
   const isDocumentDeletable = isOwner;
+  const isTeamDocument = teamUrl && row.team?.url === teamUrl;
 
   const documentsPath = formatDocumentsPath(teamUrl);
 
@@ -72,6 +74,7 @@ export const DataTableActionDropdown = ({ row, teamUrl }: DataTableActionDropdow
     if (!recipient) {
       document = await trpcClient.document.getDocumentById.query({
         id: row.id,
+        teamUrl,
       });
     } else {
       document = await trpcClient.document.getDocumentByToken.query({
@@ -120,7 +123,7 @@ export const DataTableActionDropdown = ({ row, teamUrl }: DataTableActionDropdow
           </Link>
         </DropdownMenuItem>
 
-        <DropdownMenuItem disabled={!isOwner || isComplete} asChild>
+        <DropdownMenuItem disabled={(!isOwner && !isTeamDocument) || isComplete} asChild>
           <Link href={`${documentsPath}/${row.id}`}>
             <Edit className="mr-2 h-4 w-4" />
             Edit
@@ -149,7 +152,11 @@ export const DataTableActionDropdown = ({ row, teamUrl }: DataTableActionDropdow
 
         <DropdownMenuLabel>Share</DropdownMenuLabel>
 
-        <ResendDocumentActionItem document={row} recipients={nonSignedRecipients} />
+        <ResendDocumentActionItem
+          document={row}
+          recipients={nonSignedRecipients}
+          teamUrl={teamUrl}
+        />
 
         <DocumentShareButton
           documentId={row.id}

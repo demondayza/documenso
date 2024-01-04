@@ -21,10 +21,14 @@ export default async function TeamsSettingsMembersPage({ params }: TeamsSettings
   return (
     <div>
       <SettingsHeader title="Members" subtitle="Manage the members or invite new members.">
-        <InviteTeamMembersDialog teamId={team.id} />
+        <InviteTeamMembersDialog
+          teamId={team.id}
+          currentUserTeamRole={team.currentTeamMember.role}
+        />
       </SettingsHeader>
 
       <TeamsMemberPageDataTable
+        currentUserTeamRole={team.currentTeamMember.role}
         teamId={team.id}
         teamName={team.name}
         teamOwnerUserId={team.ownerUserId}

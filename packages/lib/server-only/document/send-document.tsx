@@ -23,7 +23,22 @@ export const sendDocument = async ({ documentId, userId }: SendDocumentOptions) 
   const document = await prisma.document.findUnique({
     where: {
       id: documentId,
-      userId,
+      OR: [
+        {
+          userId,
+        },
+        {
+          team: {
+            is: {
+              members: {
+                some: {
+                  userId,
+                },
+              },
+            },
+          },
+        },
+      ],
     },
     include: {
       Recipient: true,

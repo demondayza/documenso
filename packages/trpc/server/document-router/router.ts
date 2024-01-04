@@ -33,10 +33,8 @@ export const documentRouter = router({
     .input(ZGetDocumentByIdQuerySchema)
     .query(async ({ input, ctx }) => {
       try {
-        const { id } = input;
-
         return await getDocumentById({
-          id,
+          ...input,
           userId: ctx.user.id,
         });
       } catch (err) {
@@ -213,12 +211,9 @@ export const documentRouter = router({
     .input(ZResendDocumentMutationSchema)
     .mutation(async ({ input, ctx }) => {
       try {
-        const { documentId, recipients } = input;
-
         return await resendDocument({
           userId: ctx.user.id,
-          documentId,
-          recipients,
+          ...input,
         });
       } catch (err) {
         console.error(err);

@@ -198,14 +198,28 @@ const getTeamCounts = async ({ team }: { team: TeamStatsOptions }) => {
         _all: true,
       },
       where: {
-        status: ExtendedDocumentStatus.PENDING,
-        Recipient: {
-          some: {
-            email: teamEmail,
-            signingStatus: SigningStatus.SIGNED,
+        OR: [
+          {
+            status: ExtendedDocumentStatus.PENDING,
+            Recipient: {
+              some: {
+                email: teamEmail,
+                signingStatus: SigningStatus.SIGNED,
+              },
+            },
+            deletedAt: null,
           },
-        },
-        deletedAt: null,
+          {
+            status: ExtendedDocumentStatus.COMPLETED,
+            Recipient: {
+              some: {
+                email: teamEmail,
+                signingStatus: SigningStatus.SIGNED,
+              },
+            },
+            deletedAt: null,
+          },
+        ],
       },
     } satisfies Prisma.DocumentGroupByArgs;
   }

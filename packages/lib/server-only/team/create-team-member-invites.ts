@@ -6,13 +6,14 @@ import { mailer } from '@documenso/email/mailer';
 import { render } from '@documenso/email/render';
 import type { TeamInviteEmailProps } from '@documenso/email/templates/team-invite';
 import { TeamInviteEmailTemplate } from '@documenso/email/templates/team-invite';
+import { WEBAPP_BASE_URL } from '@documenso/lib/constants/app';
 import { FROM_ADDRESS, FROM_NAME } from '@documenso/lib/constants/email';
+import { canExecuteTeamAction } from '@documenso/lib/constants/teams';
+import { AppError, AppErrorCode } from '@documenso/lib/errors/app-error';
 import { prisma } from '@documenso/prisma';
-import { TeamMemberInviteStatus } from '@documenso/prisma/client';
+import { TeamMemberInviteStatus, TeamMemberRole } from '@documenso/prisma/client';
 import type { TCreateTeamMemberInvitesMutationSchema } from '@documenso/trpc/server/team-router/schema';
 
-import { WEBAPP_BASE_URL } from '../../constants/app';
-import { AppError } from '../../errors/app-error';
 import { getTeamById } from './get-teams';
 
 export type CreateTeamMemberInvitesOptions = {
@@ -50,6 +51,23 @@ export const createTeamMemberInvites = async ({
 
     return true;
   });
+
+  const { currentTeamMember } = team;
+
+  if (!canExecuteTeamAction('MANAGE_TEAM', currentTeamMember.role)) {
+    throw new AppError(AppErrorCode.UNAUTHORIZED, 'User is not authorized to manage team.');
+  }
+
+  const unauthorizedRoleAccess = usersToInvite.some(
+    ({ role }) => role === TeamMemberRole.ADMIN && currentTeamMember.role !== TeamMemberRole.ADMIN,
+  );
+
+  if (unauthorizedRoleAccess) {
+    throw new AppError(
+      AppErrorCode.UNAUTHORIZED,
+      'User does not have permission to set high level roles',
+    );
+  }
 
   const teamMemberInvites = usersToInvite.map(({ email, role }) => ({
     email,

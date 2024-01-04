@@ -10,6 +10,7 @@ import * as z from 'zod';
 
 import { getRecipientType } from '@documenso/lib/client-only/recipient-type';
 import { recipientAbbreviation } from '@documenso/lib/utils/recipient-formatter';
+import type { Team } from '@documenso/prisma/client';
 import { type Document, type Recipient, SigningStatus } from '@documenso/prisma/client';
 import { trpc as trpcReact } from '@documenso/trpc/react';
 import { cn } from '@documenso/ui/lib/utils';
@@ -39,8 +40,11 @@ import { StackAvatar } from '~/components/(dashboard)/avatar/stack-avatar';
 const FORM_ID = 'resend-email';
 
 export type ResendDocumentActionItemProps = {
-  document: Document;
+  document: Document & {
+    team: Pick<Team, 'id' | 'url'> | null;
+  };
   recipients: Recipient[];
+  teamUrl?: string;
 };
 
 export const ZResendDocumentFormSchema = z.object({
@@ -54,15 +58,17 @@ export type TResendDocumentFormSchema = z.infer<typeof ZResendDocumentFormSchema
 export const ResendDocumentActionItem = ({
   document,
   recipients,
+  teamUrl,
 }: ResendDocumentActionItemProps) => {
   const { data: session } = useSession();
   const { toast } = useToast();
 
   const [isOpen, setIsOpen] = useState(false);
   const isOwner = document.userId === session?.user?.id;
+  const isTeamDocument = teamUrl && document.team?.url === teamUrl;
 
   const isDisabled =
-    !isOwner ||
+    (!isOwner && !isTeamDocument) ||
     document.status !== 'PENDING' ||
     !recipients.some((r) => r.signingStatus === SigningStatus.NOT_SIGNED);
 
@@ -82,7 +88,7 @@ export const ResendDocumentActionItem = ({
 
   const onFormSubmit = async ({ recipients }: TResendDocumentFormSchema) => {
     try {
-      await resendDocument({ documentId: document.id, recipients });
+      await resendDocument({ documentId: document.id, recipients, teamUrl });
 
       toast({
         title: 'Document re-sent',
