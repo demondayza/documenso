@@ -131,6 +131,12 @@ export const findDocuments = async ({
           },
         },
         Recipient: true,
+        team: {
+          select: {
+            id: true,
+            url: true,
+          },
+        },
       },
     }),
     prisma.document.count({
@@ -374,6 +380,13 @@ const findTeamDocumentsFilter = (
             some: {
               email: teamEmail,
             },
+          },
+        });
+
+        filter.OR.push({
+          status: ExtendedDocumentStatus.COMPLETED,
+          User: {
+            email: teamEmail,
           },
         });
       }

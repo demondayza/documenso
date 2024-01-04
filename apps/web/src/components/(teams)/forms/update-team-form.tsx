@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 import { WEBAPP_BASE_URL } from '@documenso/lib/constants/app';
 import { AppError, AppErrorCode } from '@documenso/lib/errors/app-error';
 import { trpc } from '@documenso/trpc/react';
+import { ZUpdateTeamMutationSchema } from '@documenso/trpc/server/team-router/schema';
 import { Button } from '@documenso/ui/primitives/button';
 import {
   Form,
@@ -28,9 +29,9 @@ export type UpdateTeamDialogProps = {
   teamUrl: string;
 };
 
-export const ZUpdateTeamFormSchema = z.object({
-  name: z.string().trim().min(1, { message: 'Please enter a valid name.' }),
-  url: z.string().min(1, 'Please enter a value.'), // Todo: Teams - Restrict certain symbols.
+export const ZUpdateTeamFormSchema = ZUpdateTeamMutationSchema.shape.data.pick({
+  name: true,
+  url: true,
 });
 
 export type TUpdateTeamFormSchema = z.infer<typeof ZUpdateTeamFormSchema>;

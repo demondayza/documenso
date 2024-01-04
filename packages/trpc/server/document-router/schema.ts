@@ -4,6 +4,7 @@ import { DocumentStatus, FieldType } from '@documenso/prisma/client';
 
 export const ZGetDocumentByIdQuerySchema = z.object({
   id: z.number().min(1),
+  teamUrl: z.string().optional(),
 });
 
 export type TGetDocumentByIdQuerySchema = z.infer<typeof ZGetDocumentByIdQuerySchema>;

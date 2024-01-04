@@ -74,6 +74,7 @@ export const ProfileDropdown = ({ user, teams: initialTeamsData }: ProfileDropdo
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
+          data-testid="profile-dropdown"
           variant="ghost"
           className="relative flex h-12 flex-row items-center px-2 py-2 focus-visible:ring-0"
         >
@@ -134,7 +135,7 @@ export const ProfileDropdown = ({ user, teams: initialTeamsData }: ProfileDropdo
 
                   <DropdownMenuItem asChild>
                     <Button
-                      title="Manage teams"
+                      title="Create team"
                       variant="ghost"
                       className="text-muted-foreground flex h-5 w-5 items-center justify-center p-0"
                       asChild

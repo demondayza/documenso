@@ -73,8 +73,8 @@ const AvatarWithText = ({
     </Avatar>
 
     <div className="flex flex-col text-left text-sm font-normal">
-      <span className="text-foreground">{primaryText}</span>
-      <span className="text-muted-foreground text-xs">{secondaryText}</span>
+      <span className="text-foreground truncate">{primaryText}</span>
+      <span className="text-muted-foreground truncate text-xs">{secondaryText}</span>
     </div>
 
     {rightSideComponent}
