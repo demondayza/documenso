@@ -7,12 +7,12 @@ import { SubscriptionStatus } from '.prisma/client';
  */
 export const isSomeSubscriptionsActiveAndCommunityPlan = (
   subscriptions: Subscription[],
-  communityPlanIds: string[],
+  communityPlanPriceIds: string[],
 ) => {
   return subscriptions.some(
     (subscription) =>
       subscription.status === SubscriptionStatus.ACTIVE &&
-      communityPlanIds.includes(subscription.planId),
+      communityPlanPriceIds.includes(subscription.priceId),
   );
 };
 

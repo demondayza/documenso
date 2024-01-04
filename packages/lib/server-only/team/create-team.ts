@@ -62,11 +62,11 @@ export const createTeam = async ({
   let isPaymentRequired = IS_BILLING_ENABLED;
 
   if (IS_BILLING_ENABLED) {
-    const communityPlanIds = await getCommunityPlanPriceIds();
+    const communityPlanPriceIds = await getCommunityPlanPriceIds();
 
-    isPaymentRequired = isSomeSubscriptionsActiveAndCommunityPlan(
+    isPaymentRequired = !isSomeSubscriptionsActiveAndCommunityPlan(
       user.Subscription,
-      communityPlanIds,
+      communityPlanPriceIds,
     );
   }
 
