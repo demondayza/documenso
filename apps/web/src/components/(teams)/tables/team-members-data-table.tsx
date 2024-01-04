@@ -5,7 +5,10 @@ import { useSearchParams } from 'next/navigation';
 import { Edit, MoreHorizontal, Trash2 } from 'lucide-react';
 
 import { useUpdateSearchParams } from '@documenso/lib/client-only/hooks/use-update-search-params';
-import { TEAM_MEMBER_ROLE_HIERARCHY, TEAM_MEMBER_ROLE_MAP } from '@documenso/lib/constants/teams';
+import {
+  TEAM_MEMBER_ROLE_MAP,
+  isTeamRoleWithinUserHierarchy,
+} from '@documenso/lib/constants/teams';
 import { ZBaseTableSearchParamsSchema } from '@documenso/lib/types/search-params';
 import { extractInitials } from '@documenso/lib/utils/recipient-formatter';
 import type { TeamMemberRole } from '@documenso/prisma/client';
@@ -129,10 +132,7 @@ export default function TeamMembersDataTable({
                     <DropdownMenuItem
                       disabled={
                         teamOwnerUserId === row.original.userId ||
-                        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-                        !(TEAM_MEMBER_ROLE_HIERARCHY[currentUserTeamRole] as string[]).includes(
-                          row.original.role,
-                        )
+                        !isTeamRoleWithinUserHierarchy(currentUserTeamRole, row.original.role)
                       }
                       onSelect={(e) => e.preventDefault()}
                       title="Update team member role"
@@ -154,10 +154,7 @@ export default function TeamMembersDataTable({
                       onSelect={(e) => e.preventDefault()}
                       disabled={
                         teamOwnerUserId === row.original.userId ||
-                        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-                        !(TEAM_MEMBER_ROLE_HIERARCHY[currentUserTeamRole] as string[]).includes(
-                          row.original.role,
-                        )
+                        !isTeamRoleWithinUserHierarchy(currentUserTeamRole, row.original.role)
                       }
                       title="Remove team member"
                     >
