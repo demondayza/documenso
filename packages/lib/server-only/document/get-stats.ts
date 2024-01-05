@@ -198,6 +198,7 @@ const getTeamCounts = async ({ team }: { team: TeamStatsOptions }) => {
         _all: true,
       },
       where: {
+        userId: userIdWhereClause,
         OR: [
           {
             status: ExtendedDocumentStatus.PENDING,

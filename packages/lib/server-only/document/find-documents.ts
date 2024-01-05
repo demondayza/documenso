@@ -326,10 +326,27 @@ const findTeamDocumentsFilter = (
         },
       };
     })
-    .with(ExtendedDocumentStatus.DRAFT, () => ({
-      teamId: team.id,
-      status: ExtendedDocumentStatus.DRAFT,
-    }))
+    .with(ExtendedDocumentStatus.DRAFT, () => {
+      const filter: Prisma.DocumentWhereInput = {
+        OR: [
+          {
+            teamId: team.id,
+            status: ExtendedDocumentStatus.DRAFT,
+          },
+        ],
+      };
+
+      if (teamEmail && filter.OR) {
+        filter.OR.push({
+          status: ExtendedDocumentStatus.DRAFT,
+          User: {
+            email: teamEmail,
+          },
+        });
+      }
+
+      return filter;
+    })
     .with(ExtendedDocumentStatus.PENDING, () => {
       const filter: Prisma.DocumentWhereInput = {
         OR: [
@@ -341,23 +358,23 @@ const findTeamDocumentsFilter = (
       };
 
       if (teamEmail && filter.OR) {
-        // Filter to display all documents received by the team email that are pending.
         filter.OR.push({
           status: ExtendedDocumentStatus.PENDING,
-          Recipient: {
-            some: {
-              email: teamEmail,
-              signingStatus: SigningStatus.SIGNED,
+          OR: [
+            {
+              Recipient: {
+                some: {
+                  email: teamEmail,
+                  signingStatus: SigningStatus.SIGNED,
+                },
+              },
             },
-          },
-        });
-
-        // Filter to display all documents that have been sent by the team email that are pending.
-        filter.OR.push({
-          status: ExtendedDocumentStatus.PENDING,
-          User: {
-            email: teamEmail,
-          },
+            {
+              User: {
+                email: teamEmail,
+              },
+            },
+          ],
         });
       }
 
@@ -376,18 +393,20 @@ const findTeamDocumentsFilter = (
       if (teamEmail && filter.OR) {
         filter.OR.push({
           status: ExtendedDocumentStatus.COMPLETED,
-          Recipient: {
-            some: {
-              email: teamEmail,
+          OR: [
+            {
+              Recipient: {
+                some: {
+                  email: teamEmail,
+                },
+              },
             },
-          },
-        });
-
-        filter.OR.push({
-          status: ExtendedDocumentStatus.COMPLETED,
-          User: {
-            email: teamEmail,
-          },
+            {
+              User: {
+                email: teamEmail,
+              },
+            },
+          ],
         });
       }
 

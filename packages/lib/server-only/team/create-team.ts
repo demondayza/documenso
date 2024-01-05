@@ -95,7 +95,7 @@ export const createTeam = async ({
     }
 
     // Create a pending team if payment is required.
-    return await prisma.$transaction(async (tx) => {
+    const pendingTeam = await prisma.$transaction(async (tx) => {
       const existingTeamWithUrl = await tx.team.findUnique({
         where: {
           url: teamUrl,
@@ -106,34 +106,34 @@ export const createTeam = async ({
         throw new AppError(AppErrorCode.ALREADY_EXISTS, 'Team URL already exists.');
       }
 
-      const pendingTeam = await tx.teamPending.create({
+      return await tx.teamPending.create({
         data: {
           name,
           url: teamUrl,
           ownerUserId: user.id,
         },
       });
-
-      const stripeCustomerId = await getStripeCustomerIdByUser(user);
-
-      const stripeCheckoutSession = await getCheckoutSession({
-        customerId: stripeCustomerId,
-        priceId: getTeamSeatPriceId(),
-        returnUrl: `${WEBAPP_BASE_URL}/settings/teams`,
-        subscriptionMetadata: {
-          pendingTeamId: pendingTeam.id.toString(),
-        },
-      });
-
-      if (!stripeCheckoutSession) {
-        throw new AppError('Unable to create checkout session');
-      }
-
-      return {
-        paymentRequired: true,
-        checkoutUrl: stripeCheckoutSession,
-      };
     });
+
+    const stripeCustomerId = await getStripeCustomerIdByUser(user);
+
+    const stripeCheckoutSession = await getCheckoutSession({
+      customerId: stripeCustomerId,
+      priceId: getTeamSeatPriceId(),
+      returnUrl: `${WEBAPP_BASE_URL}/settings/teams`,
+      subscriptionMetadata: {
+        pendingTeamId: pendingTeam.id.toString(),
+      },
+    });
+
+    if (!stripeCheckoutSession) {
+      throw new AppError('Unable to create checkout session');
+    }
+
+    return {
+      paymentRequired: true,
+      checkoutUrl: stripeCheckoutSession,
+    };
   } catch (err) {
     console.error(err);
 

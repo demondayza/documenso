@@ -29,6 +29,12 @@ export const manualLogin = async ({
 
   if (redirectPath) {
     await page.waitForURL(`${WEBAPP_BASE_URL}/documents`);
-    await page.goto(`${WEBAPP_BASE_URL}/${redirectPath}`);
+    await page.goto(`${WEBAPP_BASE_URL}${redirectPath}`);
   }
+};
+
+export const manualSignout = async ({ page }: ManualLoginOptions) => {
+  await page.getByTestId('profile-dropdown').click();
+  await page.getByRole('menuitem', { name: 'Sign Out' }).click();
+  await page.waitForURL(`${WEBAPP_BASE_URL}/signin`);
 };

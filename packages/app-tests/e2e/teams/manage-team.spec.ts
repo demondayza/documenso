@@ -30,6 +30,15 @@ test('[TEAMS]: create team', async ({ page }) => {
   await page.getByLabel('Team Name*').fill(teamId);
   await page.getByRole('button', { name: 'Create Team' }).click();
 
+  await page.getByText('Payment is required to').click();
+
+  const isCheckoutRequired = await page
+    .getByLabel('Create team')
+    .getByText('Payment is required to finalise the creation of your team.')
+    .isVisible();
+
+  test.skip(isCheckoutRequired, 'Test skipped because billing is enabled.');
+
   // Goto new team settings page.
   await page.getByRole('row').filter({ hasText: teamId }).getByRole('link').nth(1).click();
 

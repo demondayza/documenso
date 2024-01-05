@@ -15,19 +15,19 @@ export const seedTeam = async ({
   createTeamMembers = 0,
   createTeamEmail,
 }: SeedTeamOptions = {}) => {
-  const teamId = `team-${Date.now()}`;
+  const teamUrl = `team-${Date.now()}`;
 
   const teamOwner = await seedUser({
-    name: `${teamId}-original-owner`,
-    email: `${teamId}-original-owner@${EMAIL_DOMAIN}`,
+    name: `${teamUrl}-original-owner`,
+    email: `${teamUrl}-original-owner@${EMAIL_DOMAIN}`,
   });
 
-  const teamEmail = createTeamEmail === true ? `${teamId}@${EMAIL_DOMAIN}` : createTeamEmail;
+  const teamEmail = createTeamEmail === true ? `${teamUrl}@${EMAIL_DOMAIN}` : createTeamEmail;
 
   const team = await prisma.team.create({
     data: {
-      name: teamId,
-      url: teamId,
+      name: teamUrl,
+      url: teamUrl,
       ownerUserId: teamOwner.id,
       members: {
         create: {
@@ -49,8 +49,8 @@ export const seedTeam = async ({
   for (let i = 0; i < createTeamMembers; i++) {
     await prisma.user.create({
       data: {
-        name: `${teamId}-member-${i}`,
-        email: `${teamId}-member-${i}@${EMAIL_DOMAIN}`,
+        name: `team-${team.id}-member-${i + 1}`,
+        email: `team-${team.id}-member-${i + 1}@${EMAIL_DOMAIN}`,
         password: hashSync('password'),
         emailVerified: new Date(),
         teamMembers: {
@@ -65,7 +65,7 @@ export const seedTeam = async ({
 
   return await prisma.team.findFirstOrThrow({
     where: {
-      url: teamId,
+      id: team.id,
     },
     include: {
       owner: true,
@@ -117,6 +117,24 @@ export const seedTeamTransfer = async (options: { newOwnerUserId: number; teamId
       userId: options.newOwnerUserId,
       name: '',
       email: '',
+    },
+  });
+};
+
+export const seedTeamEmail = async ({ email, teamId }: { email: string; teamId: number }) => {
+  return await prisma.teamEmail.create({
+    data: {
+      name: email,
+      email,
+      teamId,
+    },
+  });
+};
+
+export const unseedTeamEmail = async ({ teamId }: { teamId: number }) => {
+  return await prisma.teamEmail.delete({
+    where: {
+      teamId,
     },
   });
 };

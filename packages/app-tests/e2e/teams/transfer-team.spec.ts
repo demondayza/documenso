@@ -12,6 +12,8 @@ test('[TEAMS]: initiate and cancel team transfer', async ({ page }) => {
     createTeamMembers: 1,
   });
 
+  const teamMember = team.members[1];
+
   await manualLogin({
     page,
     email: team.owner.email,
@@ -22,7 +24,7 @@ test('[TEAMS]: initiate and cancel team transfer', async ({ page }) => {
   await page.getByRole('button', { name: 'Transfer team' }).click();
 
   await page.getByRole('combobox').click();
-  await page.getByLabel(`${team.url}-member-0`).click(); // Todo?
+  await page.getByLabel(teamMember.user.name ?? '').click();
   await page.getByLabel('Confirm by typing transfer').click();
   await page.getByLabel('Confirm by typing transfer').fill('transfer');
   await page.getByRole('button', { name: 'Transfer' }).click();

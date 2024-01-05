@@ -18,10 +18,18 @@ test('[TEAMS]: send team email request', async ({ page }) => {
     redirectPath: `/t/${team.url}/settings`,
   });
 
+  await page.getByRole('button', { name: 'Add email' }).click();
+  await page.getByPlaceholder('eg. Legal').click();
+  await page.getByPlaceholder('eg. Legal').fill('test@test.documenso.com');
+  await page.getByPlaceholder('example@example.com').click();
+  await page.getByPlaceholder('example@example.com').fill('test@test.documenso.com');
+  await page.getByRole('button', { name: 'Add' }).click();
+
   await expect(
     page
       .getByRole('status')
-      .filter({ hasText: 'We have sent a confirmation email for verification.' }),
+      .filter({ hasText: 'We have sent a confirmation email for verification.' })
+      .first(),
   ).toBeVisible();
 
   await unseedTeam(team.url);
